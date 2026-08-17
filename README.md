@@ -62,6 +62,10 @@ Completá `.env.local`:
 - `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`: creá una base gratis
   en [upstash.com](https://upstash.com) (o conectá la integración de Vercel y
   copiá las credenciales que te muestra en Storage → tu base → `.env.local`).
+  **Son opcionales en local**: si las dejás vacías, `npm run dev` usa
+  automáticamente un almacenamiento en memoria (los datos se pierden al
+  reiniciar el servidor) para que puedas probar todo el flujo sin depender de
+  ningún servicio externo. En producción sí son obligatorias.
 - `NEXTAUTH_SECRET`: generá uno con `openssl rand -base64 32`.
 - `INVITE_CODE`: el código que le vas a pasar a tus amigos para registrarse.
 - `ADMIN_INVITE_CODE`: un código aparte, solo para vos, que además de crear tu
