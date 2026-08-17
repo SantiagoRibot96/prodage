@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  background-color: #0d1f17;
+}
+
+::selection {
+  background-color: #e0b84b;
+  color: #0d1f17;
+}
+
+.card {
+  @apply rounded-lg border border-rda-border bg-rda-panel shadow-sm;
+}
+
+.btn {
+  @apply inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-primary {
+  @apply btn bg-rda-gold text-rda-bg hover:bg-rda-gold2;
+}
+
+.btn-secondary {
+  @apply btn bg-rda-panel2 text-rda-text border border-rda-border hover:border-rda-gold;
+}
+
+.input {
+  @apply w-full rounded-md border border-rda-border bg-rda-bg px-3 py-2 text-rda-text placeholder:text-rda-muted focus:border-rda-gold focus:outline-none;
+}
+
+.label {
+  @apply mb-1 block text-sm font-medium text-rda-muted;
+}
+
+.table-rda {
+  @apply w-full border-collapse overflow-hidden rounded-lg text-sm;
+}
+
+.table-rda th {
+  @apply bg-rda-panel2 px-3 py-2 text-left font-semibold text-rda-gold;
+}
+
+.table-rda td {
+  @apply border-t border-rda-border px-3 py-2;
+}
+
+.table-rda tr:nth-child(even) td {
+  @apply bg-white/[0.02];
+}

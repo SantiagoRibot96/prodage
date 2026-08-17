@@ -1,0 +1,46 @@
+import { kv, KEYS } from "@/lib/kv";
+import type { Prediction, SeriesScore } from "@/lib/types";
+
+export async function getPrediction(
+  matchId: string,
+  userId: string
+): Promise<Prediction | null> {
+  const p = await kv.get<Prediction>(KEYS.prediction(matchId, userId));
+  return p ?? null;
+}
+
+export async function listPredictionsForMatch(matchId: string): Promise<Prediction[]> {
+  const userIds = (await kv.smembers(KEYS.userIdsByMatch(matchId))) as string[];
+  if (!userIds || userIds.length === 0) return [];
+  const preds = await Promise.all(userIds.map((uid) => getPrediction(matchId, uid)));
+  return preds.filter((p): p is Prediction => !!p);
+}
+
+export async function listPredictionsForUser(userId: string): Promise<Prediction[]> {
+  const matchIds = (await kv.smembers(KEYS.matchIdsByUser(userId))) as string[];
+  if (!matchIds || matchIds.length === 0) return [];
+  const preds = await Promise.all(matchIds.map((mid) => getPrediction(mid, userId)));
+  return preds.filter((p): p is Prediction => !!p);
+}
+
+export async function savePrediction(params: {
+  matchId: string;
+  userId: string;
+  predictedWinnerId: string;
+  predictedScore: SeriesScore;
+}): Promise<Prediction> {
+  const existing = await getPrediction(params.matchId, params.userId);
+  const now = new Date().toISOString();
+  const prediction: Prediction = {
+    matchId: params.matchId,
+    userId: params.userId,
+    predictedWinnerId: params.predictedWinnerId,
+    predictedScore: params.predictedScore,
+    createdAt: existing?.createdAt ?? now,
+    updatedAt: now,
+  };
+  await kv.set(KEYS.prediction(params.matchId, params.userId), prediction);
+  await kv.sadd(KEYS.userIdsByMatch(params.matchId), params.userId);
+  await kv.sadd(KEYS.matchIdsByUser(params.userId), params.matchId);
+  return prediction;
+}
