@@ -1,4 +1,4 @@
-import { neon } from "@neondatabase/serverless";
+import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
 import { memoryKv } from "@/lib/memoryKv";
 
 /**
@@ -11,16 +11,30 @@ import { memoryKv } from "@/lib/memoryKv";
  *
  * Neon tiene plan gratis (a diferencia de Redis/Upstash en el Marketplace de
  * Vercel al momento de escribir esto), por eso el cambio.
+ *
+ * IMPORTANTE: el cliente de Neon se crea de forma perezosa (recién adentro
+ * de getSql(), memoizado) y nunca en el top-level del módulo. Next.js puede
+ * agrupar este archivo en un chunk compartido por muchas rutas (por ejemplo
+ * porque lo importan varias páginas), y si algo acá arriba llamara a neon()
+ * al importar el módulo, alcanzaría con que UNA sola página estática
+ * (como /login, que ni siquiera toca la base) cargue ese chunk durante el
+ * build para que reviente el prerender con "Invalid URL", aunque
+ * DATABASE_URL esté perfecta. Por eso getSql() solo se ejecuta en el
+ * momento real de una consulta (siempre en runtime, nunca en build, porque
+ * todas las páginas que tocan la base están marcadas force-dynamic).
  */
 
-const connectionString =
-  process.env.DATABASE_URL ??
-  process.env.POSTGRES_URL ??
-  process.env.POSTGRES_PRISMA_URL ??
-  process.env.POSTGRES_URL_NON_POOLING ??
-  "";
+function readConnectionString(): string {
+  return (
+    process.env.DATABASE_URL ??
+    process.env.POSTGRES_URL ??
+    process.env.POSTGRES_PRISMA_URL ??
+    process.env.POSTGRES_URL_NON_POOLING ??
+    ""
+  );
+}
 
-const hasDbConfig = Boolean(connectionString);
+const hasDbConfig = Boolean(readConnectionString());
 
 export interface KvLike {
   get<T = unknown>(key: string): Promise<T | null>;
@@ -31,17 +45,21 @@ export interface KvLike {
   srem(key: string, member: string): Promise<number>;
 }
 
-const sqlClient = hasDbConfig ? neon(connectionString) : null;
+let cachedSql: NeonQueryFunction<false, false> | null = null;
 
-function getSql() {
-  if (!sqlClient) {
-    throw new Error(
-      "Falta DATABASE_URL: conectá una base de datos Postgres (Neon) desde Vercel " +
-        "(Storage → Marketplace → Neon) y agregá la variable de entorno. " +
-        "En local podés dejarla vacía para usar el almacenamiento en memoria de desarrollo."
-    );
+function getSql(): NeonQueryFunction<false, false> {
+  if (!cachedSql) {
+    const connectionString = readConnectionString();
+    if (!connectionString) {
+      throw new Error(
+        "Falta DATABASE_URL: conectá una base de datos Postgres (Neon) desde Vercel " +
+          "(Storage → Marketplace → Neon) y agregá la variable de entorno. " +
+          "En local podés dejarla vacía para usar el almacenamiento en memoria de desarrollo."
+      );
+    }
+    cachedSql = neon(connectionString);
   }
-  return sqlClient;
+  return cachedSql;
 }
 
 let schemaReady: Promise<void> | null = null;
