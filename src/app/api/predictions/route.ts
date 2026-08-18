@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth";
 import { getMatchRef } from "@/lib/matches";
 import { getResult } from "@/lib/repo/results";
-import { savePrediction } from "@/lib/repo/predictions";
+import { isInProgress } from "@/lib/repo/matchState";
+import { createPrediction } from "@/lib/repo/predictions";
 
 export async function POST(req: Request) {
   const user = await getSessionUser();
@@ -35,12 +36,28 @@ export async function POST(req: Request) {
     );
   }
 
-  const prediction = await savePrediction({
-    matchId,
-    userId: user.id,
-    predictedWinnerId,
-    predictedScore,
-  });
+  if (await isInProgress(matchId)) {
+    return NextResponse.json(
+      { error: "La partida está en curso: los pronósticos para este partido están cerrados." },
+      { status: 409 }
+    );
+  }
 
-  return NextResponse.json({ ok: true, prediction });
+  try {
+    const prediction = await createPrediction({
+      matchId,
+      userId: user.id,
+      predictedWinnerId,
+      predictedScore,
+    });
+    return NextResponse.json({ ok: true, prediction });
+  } catch (err: any) {
+    if (err?.message === "ALREADY_PREDICTED") {
+      return NextResponse.json(
+        { error: "Ya hiciste tu pronóstico para este partido: no se puede modificar." },
+        { status: 409 }
+      );
+    }
+    return NextResponse.json({ error: "No se pudo guardar el pronóstico." }, { status: 500 });
+  }
 }

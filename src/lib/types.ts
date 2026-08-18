@@ -41,7 +41,7 @@ export type User = {
   username: string; // guardado en minúsculas
   displayUsername: string; // tal cual lo escribió el usuario
   passwordHash: string;
-  playerId: string;
+  playerId: string | null; // null si es una cuenta de invitado (no juega el torneo)
   isAdmin: boolean;
   createdAt: string;
 };
@@ -81,7 +81,7 @@ export type StandingsRow = {
 
 export type ProdeRow = {
   userId: string;
-  playerId: string;
+  playerId: string | null;
   displayUsername: string;
   points: number;
   exactCount: number;

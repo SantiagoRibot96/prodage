@@ -21,7 +21,7 @@ export default function ProdeTable({ rows }: { rows: ProdeRow[] }) {
             <tr key={r.userId}>
               <td>{idx + 1}</td>
               <td className="font-medium">{r.displayUsername}</td>
-              <td className="text-rda-muted">{playerName(r.playerId)}</td>
+              <td className="text-rda-muted">{r.playerId ? playerName(r.playerId) : "Invitado/a"}</td>
               <td className="text-center font-semibold text-rda-gold">{r.points}</td>
               <td className="text-center">{r.exactCount}</td>
               <td className="text-center">{r.winnerOnlyCount}</td>

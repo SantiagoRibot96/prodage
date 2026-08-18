@@ -3,6 +3,7 @@ import Link from "next/link";
 import { FECHAS } from "@/lib/data/schedule";
 import { listResults } from "@/lib/repo/results";
 import { listPredictionsForUser } from "@/lib/repo/predictions";
+import { listInProgressIds } from "@/lib/repo/matchState";
 import { getSessionUser } from "@/lib/auth";
 import MatchCard from "@/components/MatchCard";
 
@@ -14,9 +15,12 @@ export default async function FechaPage({ params }: { params: { n: string } }) {
   if (!fecha) notFound();
 
   const user = await getSessionUser();
-  const results = await listResults();
+  const [results, myPreds, inProgressIds] = await Promise.all([
+    listResults(),
+    user ? listPredictionsForUser(user.id) : Promise.resolve([]),
+    listInProgressIds(),
+  ]);
   const resultsByMatch = new Map(results.map((r) => [r.matchId, r]));
-  const myPreds = user ? await listPredictionsForUser(user.id) : [];
   const myPredsByMatch = new Map(myPreds.map((p) => [p.matchId, p]));
 
   const idx = FECHAS.findIndex((f) => f.number === number);
@@ -63,6 +67,7 @@ export default async function FechaPage({ params }: { params: { n: string } }) {
             result={resultsByMatch.get(m.id) ?? null}
             myPrediction={myPredsByMatch.get(m.id) ?? null}
             canPredict={!!user}
+            inProgress={inProgressIds.has(m.id)}
           />
         ))}
       </div>

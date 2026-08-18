@@ -5,11 +5,13 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import type { Player } from "@/lib/data/players";
 
+const NO_PLAYER = "";
+
 export default function RegisterForm({ availablePlayers }: { availablePlayers: Player[] }) {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [playerId, setPlayerId] = useState(availablePlayers[0]?.id ?? "");
+  const [playerId, setPlayerId] = useState(NO_PLAYER);
   const [inviteCode, setInviteCode] = useState("");
   const [adminCode, setAdminCode] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -18,18 +20,18 @@ export default function RegisterForm({ availablePlayers }: { availablePlayers: P
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
-
-    if (!playerId) {
-      setError("No quedan jugadores disponibles para asociar. Hablá con el admin.");
-      return;
-    }
-
     setLoading(true);
     try {
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password, playerId, inviteCode, adminCode }),
+        body: JSON.stringify({
+          username,
+          password,
+          playerId: playerId || null,
+          inviteCode,
+          adminCode,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -54,20 +56,22 @@ export default function RegisterForm({ availablePlayers }: { availablePlayers: P
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div>
-        <label className="label">¿Quién sos? (jugador del torneo)</label>
+        <label className="label">¿Sos alguno de los jugadores del torneo?</label>
         <select
           className="input"
           value={playerId}
           onChange={(e) => setPlayerId(e.target.value)}
-          required
         >
-          {availablePlayers.length === 0 && <option value="">Sin jugadores disponibles</option>}
+          <option value={NO_PLAYER}>No juego — solo quiero pronosticar</option>
           {availablePlayers.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
             </option>
           ))}
         </select>
+        <p className="mt-1 text-xs text-rda-muted">
+          Cualquiera puede crear una cuenta para pronosticar, no hace falta jugar el torneo.
+        </p>
       </div>
       <div>
         <label className="label">Usuario</label>
@@ -111,7 +115,7 @@ export default function RegisterForm({ availablePlayers }: { availablePlayers: P
         />
       </div>
       {error && <p className="text-sm text-rda-lose">{error}</p>}
-      <button className="btn-primary w-full" disabled={loading || availablePlayers.length === 0}>
+      <button className="btn-primary w-full" disabled={loading}>
         {loading ? "Creando cuenta..." : "Crear cuenta"}
       </button>
     </form>

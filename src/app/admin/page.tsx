@@ -3,6 +3,7 @@ import { getSessionUser } from "@/lib/auth";
 import { FECHAS, ALL_GROUP_MATCHES } from "@/lib/data/schedule";
 import { listResults } from "@/lib/repo/results";
 import { getPlayoffs } from "@/lib/repo/playoffs";
+import { listInProgressIds } from "@/lib/repo/matchState";
 import { playerName } from "@/lib/data/players";
 import AdvancePlayoffsButton from "@/components/AdvancePlayoffsButton";
 
@@ -27,7 +28,11 @@ export default async function AdminPage() {
     return <p className="text-center text-rda-muted">Tu cuenta no tiene permisos de administrador.</p>;
   }
 
-  const [results, playoffs] = await Promise.all([listResults(), getPlayoffs()]);
+  const [results, playoffs, inProgressIds] = await Promise.all([
+    listResults(),
+    getPlayoffs(),
+    listInProgressIds(),
+  ]);
   const resultsByMatch = new Map(results.map((r) => [r.matchId, r]));
 
   const totalGroup = ALL_GROUP_MATCHES.length;
@@ -36,8 +41,15 @@ export default async function AdminPage() {
 
   return (
     <div>
-      <h1 className="mb-1 text-2xl font-bold text-rda-gold">Panel de administración</h1>
-      <p className="mb-6 text-sm text-rda-muted">Cargá resultados y gestioná los playoffs.</p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-rda-gold">Panel de administración</h1>
+          <p className="text-sm text-rda-muted">Cargá resultados y gestioná los playoffs.</p>
+        </div>
+        <Link href="/admin/users" className="text-sm text-rda-teal hover:underline">
+          Gestionar usuarios →
+        </Link>
+      </div>
 
       <div className="card mb-8 p-4">
         <div className="mb-3 flex items-center justify-between">
@@ -98,6 +110,7 @@ export default async function AdminPage() {
             <div className="grid gap-2 sm:grid-cols-2">
               {f.matches.map((m) => {
                 const result = resultsByMatch.get(m.id);
+                const live = !result && inProgressIds.has(m.id);
                 return (
                   <Link
                     key={m.id}
@@ -108,8 +121,8 @@ export default async function AdminPage() {
                       {playerName(m.playerAId)} <span className="text-rda-muted">vs</span>{" "}
                       {playerName(m.playerBId)}
                     </span>
-                    <span className={result ? "text-rda-win" : "text-rda-muted"}>
-                      {result ? "✓ Cargado" : "Pendiente"}
+                    <span className={result ? "text-rda-win" : live ? "text-rda-lose" : "text-rda-muted"}>
+                      {result ? "✓ Cargado" : live ? "🔴 En curso" : "Pendiente"}
                     </span>
                   </Link>
                 );

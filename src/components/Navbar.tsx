@@ -46,6 +46,16 @@ export default function Navbar() {
               {l.label}
             </Link>
           ))}
+          {session?.user && (
+            <Link
+              href="/mis-pronosticos"
+              className={`text-sm hover:text-rda-gold ${
+                pathname === "/mis-pronosticos" ? "text-rda-gold" : "text-rda-text"
+              }`}
+            >
+              Mis pronósticos
+            </Link>
+          )}
           {session?.user?.isAdmin && (
             <Link
               href="/admin"
@@ -78,6 +88,11 @@ export default function Navbar() {
               {l.label}
             </Link>
           ))}
+          {session?.user && (
+            <Link href="/mis-pronosticos" className="py-1 text-sm" onClick={() => setOpen(false)}>
+              Mis pronósticos
+            </Link>
+          )}
           {session?.user?.isAdmin && (
             <Link href="/admin" className="py-1 text-sm font-semibold text-rda-teal" onClick={() => setOpen(false)}>
               Admin

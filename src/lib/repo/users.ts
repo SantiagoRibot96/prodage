@@ -33,13 +33,13 @@ export async function listUsers(): Promise<User[]> {
 
 export async function listTakenPlayerIds(): Promise<Set<string>> {
   const users = await listUsers();
-  return new Set(users.map((u) => u.playerId));
+  return new Set(users.map((u) => u.playerId).filter((id): id is string => !!id));
 }
 
 export async function createUser(params: {
   username: string;
   password: string;
-  playerId: string;
+  playerId: string | null;
   isAdmin: boolean;
 }): Promise<User> {
   const usernameLower = params.username.trim().toLowerCase();
@@ -48,9 +48,11 @@ export async function createUser(params: {
   if (existing) {
     throw new Error("Ese nombre de usuario ya está en uso.");
   }
-  const playerTaken = await getUserIdByPlayer(params.playerId);
-  if (playerTaken) {
-    throw new Error("Ese jugador ya tiene una cuenta asociada.");
+  if (params.playerId) {
+    const playerTaken = await getUserIdByPlayer(params.playerId);
+    if (playerTaken) {
+      throw new Error("Ese jugador ya tiene una cuenta asociada.");
+    }
   }
 
   const passwordHash = await bcrypt.hash(params.password, 10);
@@ -66,7 +68,9 @@ export async function createUser(params: {
 
   await kv.set(KEYS.userById(user.id), user);
   await kv.set(KEYS.userIdByUsername(usernameLower), user.id);
-  await kv.set(KEYS.userIdByPlayer(params.playerId), user.id);
+  if (user.playerId) {
+    await kv.set(KEYS.userIdByPlayer(user.playerId), user.id);
+  }
   await kv.sadd(KEYS.allUserIds, user.id);
 
   return user;
@@ -74,4 +78,27 @@ export async function createUser(params: {
 
 export async function verifyPassword(user: User, password: string): Promise<boolean> {
   return bcrypt.compare(password, user.passwordHash);
+}
+
+function randomTempPassword(): string {
+  // 10 caracteres, alfabeto sin 0/O/1/l/I para que sea fácil de dictar/tipear.
+  const alphabet = "23456789abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ";
+  let out = "";
+  for (let i = 0; i < 10; i++) {
+    out += alphabet[Math.floor(Math.random() * alphabet.length)];
+  }
+  return out;
+}
+
+/** Genera una contraseña temporal nueva, la guarda hasheada y la devuelve en texto plano UNA sola vez. */
+export async function resetPassword(userId: string): Promise<{ user: User; newPassword: string }> {
+  const user = await getUserById(userId);
+  if (!user) {
+    throw new Error("Usuario no encontrado.");
+  }
+  const newPassword = randomTempPassword();
+  const passwordHash = await bcrypt.hash(newPassword, 10);
+  const updated: User = { ...user, passwordHash };
+  await kv.set(KEYS.userById(userId), updated);
+  return { user: updated, newPassword };
 }

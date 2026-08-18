@@ -8,15 +8,24 @@ civs usadas, civs baneadas).
 ## Qué incluye
 
 - **Login por usuario/contraseña** (sin email). Registro abierto con un código
-  de invitación compartido; cada amigo se asocia a su nombre de la lista de 12
-  jugadores. Un segundo código opcional ("código admin") da permisos de
-  organizador a la cuenta que lo use.
+  de invitación compartido: cualquiera puede crear una cuenta, no hace falta
+  ser uno de los 12 jugadores del torneo (podés asociarte a un jugador de la
+  lista o registrarte como invitado/a que solo pronostica). Un segundo código
+  opcional ("código admin") da permisos de organizador a la cuenta que lo use.
+  Si alguien se olvida la contraseña, el admin se la puede blanquear desde
+  `/admin/users` (genera una temporal y se la pasás vos).
 - **Pronósticos**: por cada serie Bo3, cada usuario elige ganador + marcador
-  exacto (2-0 / 2-1). Se puede editar el pronóstico hasta que el admin carga el
-  resultado real; a partir de ahí queda bloqueado y se revelan los pronósticos
-  de todos.
+  exacto (2-0 / 2-1) en dos pasos (elegís y después confirmás). Una vez
+  confirmado, el pronóstico es **definitivo**: ni siquiera el propio usuario
+  puede cambiarlo (solo el admin puede deshacerlo puntualmente, por si hubo un
+  error). Los pronósticos son **privados**: cada uno ve únicamente los
+  propios (en `/mis-pronosticos`, agrupados en en curso / abiertos /
+  terminados) y el ranking general de puntos — nunca lo que pronosticó otro.
   - Acertar el ganador: **1 punto**.
   - Acertar ganador + marcador exacto: **3 puntos**.
+- **Estado "en curso"**: el admin puede marcar un partido como que se está
+  jugando ahora mismo, lo que cierra los pronósticos al instante (antes incluso
+  de cargar el resultado final).
 - **Carga de resultados (admin)**: por cada serie se cargan los mapas jugados
   (el primero siempre Arabia, el resto del pool que perdedor elige), quién
   ganó cada mapa, qué civilización usó cada jugador en cada mapa, y las 2 civs
@@ -26,7 +35,8 @@ civs usadas, civs baneadas).
 - **Tabla oficial del torneo** (fase de grupos): PTS / J / G / P / Mapas
   perdidos, con los criterios de desempate del handbook (menos mapas
   perdidos, luego enfrentamiento directo).
-- **Tabla del prode**: ranking de amigos por puntos de pronósticos.
+- **Tabla del prode**: ranking de amigos por puntos de pronósticos (visible
+  para todos; los pronósticos individuales no).
 - **Playoffs**: al completarse la fase de grupos, el admin genera las
   semifinales (1º vs 4º, 2º vs 3º) con un botón; al cargar los resultados de
   ambas semis, otro botón arma la Final. Los playoffs también se pronostican.

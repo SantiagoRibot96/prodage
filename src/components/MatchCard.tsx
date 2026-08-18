@@ -14,6 +14,7 @@ export default function MatchCard({
   myPrediction,
   linkToDetail = true,
   canPredict = true,
+  inProgress = false,
 }: {
   matchId: string;
   playerAId: string;
@@ -23,6 +24,7 @@ export default function MatchCard({
   myPrediction: Prediction | null;
   linkToDetail?: boolean;
   canPredict?: boolean;
+  inProgress?: boolean;
 }) {
   const nameA = playerName(playerAId);
   const nameB = playerName(playerBId);
@@ -30,7 +32,14 @@ export default function MatchCard({
   return (
     <div className="card p-4">
       <div className="mb-2 flex items-center justify-between">
-        {label && <span className="text-xs uppercase tracking-wide text-rda-muted">{label}</span>}
+        <span className="flex items-center gap-2">
+          {label && <span className="text-xs uppercase tracking-wide text-rda-muted">{label}</span>}
+          {!result && inProgress && (
+            <span className="rounded-full bg-rda-lose/20 px-2 py-0.5 text-[10px] font-semibold text-rda-lose">
+              EN CURSO
+            </span>
+          )}
+        </span>
         {linkToDetail && (
           <Link href={`/match/${matchId}`} className="text-xs text-rda-teal hover:underline">
             Ver detalle
@@ -90,6 +99,7 @@ export default function MatchCard({
           matchId={matchId}
           playerA={{ id: playerAId, name: nameA }}
           playerB={{ id: playerBId, name: nameB }}
+          locked={inProgress}
           initial={
             myPrediction
               ? {

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { getMatchRef } from "@/lib/matches";
 import { getResult, saveResult, deleteResult } from "@/lib/repo/results";
+import { clearInProgress } from "@/lib/repo/matchState";
 import type { GameResult, MatchResult, MatchResultStatus, SeriesScore } from "@/lib/types";
 
 function winsRequiredFor(score: SeriesScore) {
@@ -107,6 +108,8 @@ export async function POST(req: Request) {
   };
 
   await saveResult(result);
+  // El partido ya terminó: no tiene sentido que siga marcado "en curso".
+  await clearInProgress(matchId);
   return NextResponse.json({ ok: true, result });
 }
 

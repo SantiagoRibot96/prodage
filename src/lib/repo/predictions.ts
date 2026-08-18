@@ -23,24 +23,40 @@ export async function listPredictionsForUser(userId: string): Promise<Prediction
   return preds.filter((p): p is Prediction => !!p);
 }
 
-export async function savePrediction(params: {
+/**
+ * Crea el pronóstico de un usuario para un partido. A propósito NO permite
+ * sobreescribir uno ya existente: una vez confirmado, un pronóstico es
+ * definitivo para el usuario (solo el admin puede deshacerlo, ver
+ * deletePrediction).
+ */
+export async function createPrediction(params: {
   matchId: string;
   userId: string;
   predictedWinnerId: string;
   predictedScore: SeriesScore;
 }): Promise<Prediction> {
   const existing = await getPrediction(params.matchId, params.userId);
+  if (existing) {
+    throw new Error("ALREADY_PREDICTED");
+  }
   const now = new Date().toISOString();
   const prediction: Prediction = {
     matchId: params.matchId,
     userId: params.userId,
     predictedWinnerId: params.predictedWinnerId,
     predictedScore: params.predictedScore,
-    createdAt: existing?.createdAt ?? now,
+    createdAt: now,
     updatedAt: now,
   };
   await kv.set(KEYS.prediction(params.matchId, params.userId), prediction);
   await kv.sadd(KEYS.userIdsByMatch(params.matchId), params.userId);
   await kv.sadd(KEYS.matchIdsByUser(params.userId), params.matchId);
   return prediction;
+}
+
+/** Solo para uso del admin: deshace el pronóstico de un usuario para un partido. */
+export async function deletePrediction(matchId: string, userId: string): Promise<void> {
+  await kv.del(KEYS.prediction(matchId, userId));
+  await kv.srem(KEYS.userIdsByMatch(matchId), userId);
+  await kv.srem(KEYS.matchIdsByUser(userId), matchId);
 }

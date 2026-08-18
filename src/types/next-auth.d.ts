@@ -5,7 +5,7 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: string;
-      playerId: string;
+      playerId: string | null;
       isAdmin: boolean;
       name: string;
     };
@@ -13,7 +13,7 @@ declare module "next-auth" {
 
   interface User {
     id: string;
-    playerId: string;
+    playerId: string | null;
     isAdmin: boolean;
     name: string;
   }
@@ -22,7 +22,7 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     userId: string;
-    playerId: string;
+    playerId: string | null;
     isAdmin: boolean;
     name: string;
   }

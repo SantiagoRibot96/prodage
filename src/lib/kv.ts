@@ -45,4 +45,6 @@ export const KEYS = {
   matchIdsByUser: (userId: string) => `pred:byUser:${userId}`,
 
   playoffsState: "playoffs:state",
+
+  inProgressSet: "matchState:inProgress",
 } as const;

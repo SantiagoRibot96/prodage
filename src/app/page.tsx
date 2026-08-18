@@ -3,6 +3,7 @@ import { getSessionUser } from "@/lib/auth";
 import { FECHAS } from "@/lib/data/schedule";
 import { listResults } from "@/lib/repo/results";
 import { listPredictionsForUser } from "@/lib/repo/predictions";
+import { listInProgressIds } from "@/lib/repo/matchState";
 import { computeProdeLeaderboard } from "@/lib/scoring";
 import { listUsers, toPublicUser } from "@/lib/repo/users";
 import MatchCard from "@/components/MatchCard";
@@ -32,10 +33,11 @@ export default async function HomePage() {
     );
   }
 
-  const [results, myPreds, users] = await Promise.all([
+  const [results, myPreds, users, inProgressIds] = await Promise.all([
     listResults(),
     listPredictionsForUser(user.id),
     listUsers(),
+    listInProgressIds(),
   ]);
   const resultsByMatch = new Map(results.map((r) => [r.matchId, r]));
   const myPredsByMatch = new Map(myPreds.map((p) => [p.matchId, p]));
@@ -87,6 +89,7 @@ export default async function HomePage() {
             playerBId={m.playerBId}
             result={resultsByMatch.get(m.id) ?? null}
             myPrediction={myPredsByMatch.get(m.id) ?? null}
+            inProgress={inProgressIds.has(m.id)}
           />
         ))}
       </div>

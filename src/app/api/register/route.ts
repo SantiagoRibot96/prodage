@@ -19,12 +19,17 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    if (!playerId || !PLAYERS_BY_ID[playerId]) {
-      return NextResponse.json(
-        { error: "Elegí tu jugador de la lista." },
-        { status: 400 }
-      );
+    // playerId es opcional: no hace falta ser uno de los 12 jugadores del
+    // torneo para registrarse y pronosticar (amigos que solo miran también
+    // pueden crear cuenta).
+    let resolvedPlayerId: string | null = null;
+    if (playerId) {
+      if (!PLAYERS_BY_ID[playerId]) {
+        return NextResponse.json({ error: "Jugador inválido." }, { status: 400 });
+      }
+      resolvedPlayerId = playerId;
     }
+
     if (!inviteCode || inviteCode !== process.env.INVITE_CODE) {
       return NextResponse.json(
         { error: "Código de invitación incorrecto." },
@@ -38,7 +43,7 @@ export async function POST(req: Request) {
         adminCode === process.env.ADMIN_INVITE_CODE
     );
 
-    const user = await createUser({ username, password, playerId, isAdmin });
+    const user = await createUser({ username, password, playerId: resolvedPlayerId, isAdmin });
 
     return NextResponse.json({
       ok: true,

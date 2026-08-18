@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getPlayoffs } from "@/lib/repo/playoffs";
 import { getResult } from "@/lib/repo/results";
 import { getPrediction } from "@/lib/repo/predictions";
+import { isInProgress } from "@/lib/repo/matchState";
 import { getSessionUser } from "@/lib/auth";
 import { playerName } from "@/lib/data/players";
 import MatchCard from "@/components/MatchCard";
@@ -80,9 +81,10 @@ async function SemiOrFinalCard({
     );
   }
 
-  const [result, myPrediction] = await Promise.all([
+  const [result, myPrediction, inProgress] = await Promise.all([
     getResult(matchId),
     userId ? getPrediction(matchId, userId) : Promise.resolve(null),
+    isInProgress(matchId),
   ]);
 
   return (
@@ -94,6 +96,7 @@ async function SemiOrFinalCard({
       result={result}
       myPrediction={myPrediction}
       canPredict={!!userId}
+      inProgress={inProgress}
     />
   );
 }
