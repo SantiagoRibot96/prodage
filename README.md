@@ -131,6 +131,11 @@ src/
 
 ## Notas
 
+- Si `NEXTAUTH_URL` queda creada en Vercel pero con el valor en blanco,
+  `next-auth` rompe el build entero al inicializarse (`Invalid URL`). Hay una
+  guarda en [next.config.mjs](next.config.mjs) que la ignora si llega vacía,
+  pero de todas formas conviene completarla bien con la URL pública real del
+  deploy (ver sección de deploy).
 - `npm audit` va a marcar un par de advisories de Next.js que solo están
   totalmente resueltos en Next 16 (un salto de versión mayor, con cambios
   grandes de API). Se usa acá la última versión parcheada de la rama 14.x
