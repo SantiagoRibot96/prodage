@@ -1,4 +1,5 @@
 import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
+import { unstable_noStore as noStore } from "next/cache";
 import { memoryKv } from "@/lib/memoryKv";
 
 /**
@@ -22,6 +23,16 @@ import { memoryKv } from "@/lib/memoryKv";
  * DATABASE_URL esté perfecta. Por eso getSql() solo se ejecuta en el
  * momento real de una consulta (siempre en runtime, nunca en build, porque
  * todas las páginas que tocan la base están marcadas force-dynamic).
+ *
+ * TAMBIÉN IMPORTANTE: cada operación llama a noStore() (next/cache) antes de
+ * consultar. `export const dynamic = "force-dynamic"` en la página debería
+ * alcanzar solo, pero en la práctica (Next 14.2 en Vercel) las páginas que
+ * NO leen cookies/headers en ningún otro lado (ej. /fechas, /standings,
+ * /prode, /register: no chequean sesión) igual quedaban cacheadas pese al
+ * force-dynamic, mostrando datos viejos/vacíos de forma consistente aunque
+ * el fetch fuera un MISS de CDN. Marcando cada consulta acá, en un único
+ * lugar, queda blindado para toda la app sin depender de que cada página
+ * "toque" algo dinámico por su cuenta.
  */
 
 function readConnectionString(): string {
@@ -87,6 +98,7 @@ function ensureSchema(): Promise<void> {
 
 const postgresKv: KvLike = {
   async get<T = unknown>(key: string): Promise<T | null> {
+    noStore();
     await ensureSchema();
     const sql = getSql();
     const rows = await sql`SELECT value FROM kv_store WHERE key = ${key}`;
@@ -94,6 +106,7 @@ const postgresKv: KvLike = {
   },
 
   async set(key: string, value: unknown): Promise<unknown> {
+    noStore();
     await ensureSchema();
     const sql = getSql();
     await sql`
@@ -105,6 +118,7 @@ const postgresKv: KvLike = {
   },
 
   async del(key: string): Promise<number> {
+    noStore();
     await ensureSchema();
     const sql = getSql();
     const rows = await sql`DELETE FROM kv_store WHERE key = ${key} RETURNING key`;
@@ -112,6 +126,7 @@ const postgresKv: KvLike = {
   },
 
   async sadd(key: string, member: string): Promise<number> {
+    noStore();
     await ensureSchema();
     const sql = getSql();
     const rows = await sql`
@@ -124,6 +139,7 @@ const postgresKv: KvLike = {
   },
 
   async smembers(key: string): Promise<string[]> {
+    noStore();
     await ensureSchema();
     const sql = getSql();
     const rows = await sql`SELECT member FROM kv_set_members WHERE key = ${key}`;
@@ -131,6 +147,7 @@ const postgresKv: KvLike = {
   },
 
   async srem(key: string, member: string): Promise<number> {
+    noStore();
     await ensureSchema();
     const sql = getSql();
     const rows = await sql`
