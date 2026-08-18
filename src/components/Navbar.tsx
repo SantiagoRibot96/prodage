@@ -11,6 +11,7 @@ const LINKS = [
   { href: "/standings", label: "Tabla" },
   { href: "/prode", label: "Prode" },
   { href: "/playoffs", label: "Playoffs" },
+  { href: "/premios", label: "Premios" },
 ];
 
 export default function Navbar() {

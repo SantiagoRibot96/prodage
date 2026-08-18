@@ -161,4 +161,8 @@ export const KEYS = {
   playoffsState: "playoffs:state",
 
   inProgressSet: "matchState:inProgress",
+
+  awardVote: (category: string, userId: string) => `award:vote:${category}:${userId}`,
+  awardVoters: (category: string) => `award:voters:${category}`,
+  awardState: (category: string) => `award:state:${category}`,
 } as const;

@@ -40,6 +40,13 @@ civs usadas, civs baneadas).
 - **Playoffs**: al completarse la fase de grupos, el admin genera las
   semifinales (1º vs 4º, 2º vs 3º) con un botón; al cargar los resultados de
   ambas semis, otro botón arma la Final. Los playoffs también se pronostican.
+- **Premios de la temporada** (`/premios`): encuesta entre amigos —Campeón,
+  Revelación y Promesa— sin plazo fijo y **sin puntos** (es solo para
+  divertirse). Cada usuario vota una vez por categoría y queda confirmado
+  (misma lógica de "no se puede deshacer" que los pronósticos). El admin
+  puede cerrar la votación de cada categoría y declarar el ganador real
+  cuando quiera desde `/admin/premios`; recién ahí se revela cómo votó cada
+  uno.
 
 ## Stack técnico
 

@@ -89,3 +89,26 @@ export type ProdeRow = {
   missedCount: number;
   predictedCount: number;
 };
+
+/**
+ * Premios de la temporada (encuesta entre amigos, no suma puntos al prode):
+ * cada usuario vota una vez por categoría, sin poder cambiarlo. El admin
+ * puede cerrar la votación de una categoría y, cuando quiera, declarar el
+ * ganador real (eso revela cómo votó todo el mundo).
+ */
+export type AwardCategory = "campeon" | "revelacion" | "promesa";
+
+export type AwardVote = {
+  category: AwardCategory;
+  userId: string;
+  playerId: string;
+  createdAt: string;
+};
+
+export type AwardState = {
+  category: AwardCategory;
+  closed: boolean;
+  winnerPlayerId: string | null;
+  closedAt?: string;
+  revealedAt?: string;
+};

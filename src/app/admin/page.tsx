@@ -46,9 +46,14 @@ export default async function AdminPage() {
           <h1 className="text-2xl font-bold text-rda-gold">Panel de administración</h1>
           <p className="text-sm text-rda-muted">Cargá resultados y gestioná los playoffs.</p>
         </div>
-        <Link href="/admin/users" className="text-sm text-rda-teal hover:underline">
-          Gestionar usuarios →
-        </Link>
+        <div className="flex gap-4 text-sm">
+          <Link href="/admin/premios" className="text-rda-teal hover:underline">
+            Premios →
+          </Link>
+          <Link href="/admin/users" className="text-rda-teal hover:underline">
+            Gestionar usuarios →
+          </Link>
+        </div>
       </div>
 
       <div className="card mb-8 p-4">
