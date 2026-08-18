@@ -44,18 +44,21 @@ civs usadas, civs baneadas).
 ## Stack técnico
 
 - **Next.js 14 (App Router) + TypeScript**, pensado para deployar en Vercel.
-- **Sin base de datos tradicional**: todo se guarda como JSON en **Redis**
-  (integración "Redis" de Upstash desde el Marketplace de Vercel — hay un
-  plan gratis de sobra para este uso). Es la opción más parecida a "guardar
-  todo en archivos JSON" que además persiste correctamente en Vercel (el
-  filesystem de las funciones serverless es de solo lectura, por eso no se
-  puede escribir en un `.json` del repo en producción).
+- **Postgres (Neon)** como base de datos — tiene plan gratis. En vez de armar
+  un esquema relacional grande, se usan dos tablas chiquitas (`kv_store` /
+  `kv_set_members`, ver [src/lib/kv.ts](src/lib/kv.ts)) que emulan un
+  almacenamiento clave→JSON: es la opción más parecida a "guardar todo en
+  archivos JSON" que además persiste correctamente en Vercel (el filesystem
+  de las funciones serverless es de solo lectura, por eso no se puede
+  escribir en un `.json` del repo en producción). Las tablas se crean solas
+  la primera vez que la app necesita usarlas (`CREATE TABLE IF NOT EXISTS`),
+  no hace falta correr ninguna migración a mano.
 - **NextAuth** (Credentials) para el login, con contraseñas hasheadas
   (bcrypt).
 
 Los datos fijos del torneo (los 12 jugadores, las 11 fechas ya sorteadas, las
 ~54 civs habilitadas y el pool de mapas) están hardcodeados en
-`src/lib/data/` — no hace falta cargarlos a mano. Lo único que vive en Redis
+`src/lib/data/` — no hace falta cargarlos a mano. Lo único que vive en la base
 son las cuentas, los pronósticos y los resultados que se van cargando.
 
 ## Correr en local
@@ -69,13 +72,14 @@ cp .env.example .env.local
 
 Completá `.env.local`:
 
-- `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`: creá una base gratis
-  en [upstash.com](https://upstash.com) (o conectá la integración de Vercel y
-  copiá las credenciales que te muestra en Storage → tu base → `.env.local`).
-  **Son opcionales en local**: si las dejás vacías, `npm run dev` usa
+- `DATABASE_URL`: creá una base gratis en [neon.tech](https://neon.tech) (o
+  conectá la integración de Vercel y copiá el valor que te muestra en
+  Storage → tu base → `.env.local`). Es del estilo
+  `postgresql://usuario:contraseña@ep-algo.neon.tech/neondb?sslmode=require`.
+  **Es opcional en local**: si la dejás vacía, `npm run dev` usa
   automáticamente un almacenamiento en memoria (los datos se pierden al
   reiniciar el servidor) para que puedas probar todo el flujo sin depender de
-  ningún servicio externo. En producción sí son obligatorias.
+  ningún servicio externo. En producción sí es obligatoria.
 - `NEXTAUTH_SECRET`: generá uno con `openssl rand -base64 32`.
 - `INVITE_CODE`: el código que le vas a pasar a tus amigos para registrarse.
 - `ADMIN_INVITE_CODE`: un código aparte, solo para vos, que además de crear tu
@@ -93,8 +97,9 @@ Abrí [http://localhost:3000](http://localhost:3000).
 2. En [vercel.com](https://vercel.com), **Add New → Project** e importá el
    repo.
 3. Antes o después del primer deploy, andá a **Storage → Marketplace Database
-   Providers → Redis** (Upstash) y conectala al proyecto. Vercel inyecta solo
-   las variables `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`.
+   Providers → Neon** y conectala al proyecto. Vercel inyecta sola la
+   variable `DATABASE_URL` (y alguna otra equivalente tipo `POSTGRES_URL`,
+   que la app también reconoce por las dudas).
 4. En **Settings → Environment Variables** del proyecto, agregá:
    - `NEXTAUTH_SECRET`
    - `NEXTAUTH_URL` → la URL pública del deploy, ej.
@@ -117,7 +122,8 @@ src/
   components/             componentes de UI (formularios, tablas, navbar)
   lib/
     data/                 datos fijos del torneo (jugadores, civs, mapas, fixture)
-    repo/                 acceso a Redis (usuarios, resultados, predicciones, playoffs)
+    repo/                 acceso a la base (usuarios, resultados, predicciones, playoffs)
+    kv.ts                  capa clave→JSON sobre Postgres (Neon), con fallback en memoria en dev
     auth.ts               configuración de NextAuth
     scoring.ts             cálculo de la tabla oficial y de la tabla del prode
     matches.ts             resuelve un matchId (de grupos o de playoffs) a sus 2 jugadores

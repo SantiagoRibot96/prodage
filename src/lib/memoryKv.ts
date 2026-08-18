@@ -1,7 +1,7 @@
 // Almacenamiento en memoria usado SOLO como fallback de desarrollo local
-// cuando no hay credenciales de Redis configuradas (ver lib/kv.ts). Los datos
-// se pierden al reiniciar `npm run dev`. En producción (Vercel) esto nunca se
-// usa: ahí sí hace falta conectar Redis de verdad.
+// cuando no hay una base de datos configurada (ver lib/kv.ts). Los datos se
+// pierden al reiniciar `npm run dev`. En producción (Vercel) esto nunca se
+// usa: ahí sí hace falta conectar Postgres (Neon) de verdad.
 //
 // Se cuelga de `globalThis` (patrón típico en Next.js dev) porque el servidor
 // de desarrollo puede recompilar este módulo por separado para distintas
