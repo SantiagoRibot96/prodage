@@ -4,8 +4,10 @@ import { FECHAS, ALL_GROUP_MATCHES } from "@/lib/data/schedule";
 import { listResults } from "@/lib/repo/results";
 import { getPlayoffs } from "@/lib/repo/playoffs";
 import { listInProgressIds } from "@/lib/repo/matchState";
+import { countAllPredictions } from "@/lib/repo/predictions";
 import { playerName } from "@/lib/data/players";
 import AdvancePlayoffsButton from "@/components/AdvancePlayoffsButton";
+import ResetPredictionsButton from "@/components/ResetPredictionsButton";
 
 export const dynamic = "force-dynamic";
 
@@ -28,10 +30,11 @@ export default async function AdminPage() {
     return <p className="text-center text-rda-muted">Tu cuenta no tiene permisos de administrador.</p>;
   }
 
-  const [results, playoffs, inProgressIds] = await Promise.all([
+  const [results, playoffs, inProgressIds, predictionsCount] = await Promise.all([
     listResults(),
     getPlayoffs(),
     listInProgressIds(),
+    countAllPredictions(),
   ]);
   const resultsByMatch = new Map(results.map((r) => [r.matchId, r]));
 
@@ -135,6 +138,15 @@ export default async function AdminPage() {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="card mt-10 border-rda-lose/50 p-4">
+        <h2 className="mb-1 text-lg font-semibold text-rda-lose">Zona de peligro</h2>
+        <p className="mb-3 text-xs text-rda-muted">
+          Reinicia la tabla del prode (los pronósticos) para que todos arranquen de cero. Los
+          resultados, la tabla oficial y los playoffs no se tocan.
+        </p>
+        <ResetPredictionsButton currentCount={predictionsCount} />
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import { kv, KEYS } from "@/lib/kv";
+import { listUsers } from "@/lib/repo/users";
 import type { Prediction, SeriesScore } from "@/lib/types";
 
 export async function getPrediction(
@@ -59,4 +60,33 @@ export async function deletePrediction(matchId: string, userId: string): Promise
   await kv.del(KEYS.prediction(matchId, userId));
   await kv.srem(KEYS.userIdsByMatch(matchId), userId);
   await kv.srem(KEYS.matchIdsByUser(userId), matchId);
+}
+
+/** Cuántos pronósticos hay cargados en total (para mostrar antes de un reinicio). */
+export async function countAllPredictions(): Promise<number> {
+  const users = await listUsers();
+  const counts = await Promise.all(
+    users.map(async (u) => ((await kv.smembers(KEYS.matchIdsByUser(u.id))) as string[]).length)
+  );
+  return counts.reduce((sum, n) => sum + n, 0);
+}
+
+/**
+ * Solo para uso del admin: borra TODOS los pronósticos de TODOS los usuarios
+ * (para "arrancar de cero" el prode). No toca resultados, tabla oficial,
+ * playoffs, ni ningún otro dato del torneo — solo la tabla de pronósticos.
+ */
+export async function deleteAllPredictions(): Promise<number> {
+  const users = await listUsers();
+  let total = 0;
+  for (const u of users) {
+    const matchIds = (await kv.smembers(KEYS.matchIdsByUser(u.id))) as string[];
+    for (const matchId of matchIds) {
+      await kv.del(KEYS.prediction(matchId, u.id));
+      await kv.srem(KEYS.userIdsByMatch(matchId), u.id);
+      await kv.srem(KEYS.matchIdsByUser(u.id), matchId);
+      total += 1;
+    }
+  }
+  return total;
 }
