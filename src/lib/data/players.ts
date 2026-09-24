@@ -5,7 +5,7 @@ export type Player = {
 
 // Los 12 jugadores de la Liga Interna RDA, ya sorteados.
 export const PLAYERS: Player[] = [
-  { id: "depa", name: "Depa" },
+  { id: "depa", name: "Valencho" },
   { id: "ronan", name: "Ronan" },
   { id: "eltoro", name: "El Toro" },
   { id: "rocker", name: "Rocker" },

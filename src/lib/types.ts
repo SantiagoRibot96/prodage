@@ -112,3 +112,21 @@ export type AwardState = {
   closedAt?: string;
   revealedAt?: string;
 };
+
+/** Ficha de estadísticas de un jugador, calculada a partir de MatchResult[]. */
+export type CountRow = { key: string; count: number };
+export type RateRow = { key: string; played: number; hits: number; rate: number };
+
+export type PlayerStats = {
+  playerId: string;
+  matchesPlayed: number;
+  gamesPlayed: number;
+  gamesWon: number;
+  topCivsUsed: CountRow[];
+  topMapsPlayed: CountRow[]; // sin contar Arabia
+  winrateByMap: RateRow[]; // hits = mapas ganados
+  winrateByCiv: RateRow[]; // hits = partidas ganadas con esa civ propia
+  lossrateByEnemyCiv: RateRow[]; // hits = partidas perdidas contra esa civ rival
+  mostBannedByThem: CountRow[]; // civs que él banea
+  mostBannedAgainstThem: CountRow[]; // civs que le banean a él
+};
