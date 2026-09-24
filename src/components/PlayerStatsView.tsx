@@ -17,7 +17,7 @@ function CountList({ rows, emptyLabel }: { rows: CountRow[]; emptyLabel: string 
             <span className={i === 0 ? "font-semibold text-rda-gold" : "font-medium"}>{r.key}</span>
           </span>
           <span className="text-rda-muted">
-            {r.count} vez{r.count === 1 ? "" : "es"}
+            {r.count} {r.count === 1 ? "vez" : "veces"}
           </span>
         </li>
       ))}
@@ -87,7 +87,7 @@ export default function PlayerStatsView({ stats }: { stats: PlayerStats }) {
         </div>
         <div className="card p-4">
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-rda-muted">
-            Top 3 mapas más jugados (además de Arabia)
+            Top 3 mapas más jugados
           </h2>
           <CountList rows={stats.topMapsPlayed} emptyLabel="Solo jugó Arabia hasta ahora." />
         </div>
